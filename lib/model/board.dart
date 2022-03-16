@@ -17,6 +17,7 @@ class Board {
   List<PieceType> _types;
 
   List<int> _solvedBoard = [];
+  late List<int> _startingBoard ;
 
   Board({int height = DEFAULT_HEIGHT, int width = DEFAULT_WIDTH})
       :
@@ -62,7 +63,9 @@ class Board {
     _solvedBoard[15] = 1;
 
     for (Piece p in _pieces) storeMoves(p);
-
+    
+    _startingBoard = pieceLocs();
+    
     for (List<int> row in _aBoard)
       print(row);
   }
@@ -349,6 +352,10 @@ class Board {
 
   List<int> getSolvedBoard() {
     return _solvedBoard;
+  }
+
+  List<int> getStartingBoard() {
+    return _startingBoard;
   }
 
   void storeMoves(Piece p) {

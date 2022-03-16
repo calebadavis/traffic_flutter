@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.2
 
   flutter_layout_grid: ^1.0.0
+  font_awesome_flutter: 10.0.0-beta
 
 dev_dependencies:
   flutter_test:

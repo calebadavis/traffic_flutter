@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_layout_grid/flutter_layout_grid.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:traffic_flutter/model/board.dart';
+import 'package:traffic_flutter/round_icon_button.dart';
 
 import 'model/move_node.dart';
 import 'model/piece.dart';
@@ -29,6 +31,7 @@ class MyApp extends StatelessWidget {
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
         primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.black
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -54,9 +57,9 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
   Board b;
   List<MoveNode> solution = [];
+  bool solved = false;
 
   _MyHomePageState() : b = Board();
 
@@ -66,16 +69,10 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     b.initBoard();
-    MoveNode? solvedNode = b.solve();
+  }
 
-    if (solvedNode != null) {
-      curMove = 1;
-      for (MoveNode? mn = solvedNode; mn != null; mn = mn.getParent()) {
+  void showSolved({bool revert = false}) {
 
-        // Add each successive move to the solution moves list
-        solution.insert(0, mn);
-      }
-    }
   }
 
   void _rearrange(MoveNode mn) {
@@ -88,13 +85,28 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _incrementCounter() {
+
+    if (!solved) {
+      MoveNode? solvedNode = b.solve();
+      solved = true;
+      if (solvedNode != null) {
+        curMove = 1;
+        for (MoveNode? mn = solvedNode; mn != null; mn = mn.getParent()) {
+
+          // Add each successive move to the solution moves list
+          solution.insert(0, mn);
+        }
+      }
+
+    }
+
+
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
       // so that the display can reflect the updated values. If we changed
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
-      _counter++;
 
       if (curMove < solution.length -1)
 
@@ -108,11 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
 
-      // List<Piece> pieces = b.getPieces();
-      // Piece p0 = pieces[0];
-      // List<MoveDir> p0moves = pieces[0].getMoves();
-      // b.move(p0, p0moves[0]);
-      // b.printBoard();
+
     });
   }
 
@@ -160,6 +168,31 @@ class _MyHomePageState extends State<MyHomePage> {
             // ),
 
             buildGrid(b),
+            SizedBox(height: 25),
+            Row(
+                children: <Widget> [
+                  RoundIconButton(
+                      iconData: FontAwesomeIcons.expand,
+                      
+                      onTap: () {
+                        setState(() {
+                          //if (age > 0) --age;
+                        });
+                      }
+                  ),
+                  SizedBox(
+                      width: 10
+                  ),
+                  RoundIconButton(
+                      iconData: FontAwesomeIcons.arrowCircleRight,
+                      onTap: () {
+                        setState(() {
+                          //++age;
+                        });
+                      }
+                  )
+                ]
+            )
           ],
         ),
       ),
@@ -172,10 +205,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget buildGrid(Board b) {
-    bool colorFlip = true;
     List<TrackSize>
-    columnSizes = [],
-        rowSizes = [];
+      columnSizes = [],
+      rowSizes = [];
 
     List<Widget> tiles = [];
 
@@ -200,12 +232,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: SizedBox(
               width: double.infinity,
               height: double.infinity,
-              child: generateButton('Type ${pt.getId()}')
-              // FlatButton(
-              //   color: (colorFlip=!colorFlip) ? Colors.red : Colors.blue,
-              //   child: Text('Type ${pt.getId()}'),
-              //   onPressed: () {  }
-              // )
+              child: generateButton(p)
             )
           )
       );
@@ -220,32 +247,41 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget generateButton(String text) {
+  Widget generateButton(Piece p) {
     return ClipRRect(
         borderRadius: BorderRadius.circular(10),
         child: Stack(
           children: <Widget>[
             Positioned.fill(
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: <Color>[
-                      Color(0xFF0D47A1),
-                      Color(0xFF1976D2),
-                      Color(0xFF42A5F5),
-                    ],
+              child: GestureDetector(
+                onHorizontalDragEnd: (DragEndDetails dsd) {
+                  print('horizontal swipe');
+                  MoveDir dir = (dsd.primaryVelocity! < 0) ? MoveDir.LEFT : MoveDir.RIGHT;
+                  if (p.getMoves().contains(dir))
+                    setState(() {
+                      b.move(p, dir);
+                    });
+                },
+                onVerticalDragEnd: (DragEndDetails dsd) {
+                  print('vertical swipe');
+                  MoveDir dir = (dsd.primaryVelocity! < 0) ? MoveDir.UP : MoveDir.DOWN;
+                  if (p.getMoves().contains(dir))
+                    setState(() {
+                      b.move(p, dir);
+                    });
+                },
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: <Color>[
+                        Color(0xFF0D47A1),
+                        Color(0xFF1976D2),
+                        Color(0xFF42A5F5),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            TextButton(
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.all(16.0),
-                primary: Colors.white,
-                textStyle: const TextStyle(fontSize: 20),
-              ),
-              onPressed: () {},
-              child: Text(text),
             ),
           ],
         )
