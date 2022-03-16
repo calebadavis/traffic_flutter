@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:traffic_flutter/model/board.dart';
 
 void main() {
   runApp(const MyApp());
@@ -49,6 +50,15 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  Board b;
+
+  _MyHomePageState() : b = Board();
+
+  @override
+  void initState() {
+    super.initState();
+    b.initBoard();
+  }
 
   void _incrementCounter() {
     setState(() {

@@ -7,8 +7,8 @@ import 'piece_type.dart';
 
 class Board {
 
-  static int DEFAULT_HEIGHT = 5;
-  static int DEFAULT_WIDTH = 4;
+  static const int DEFAULT_HEIGHT = 5;
+  static const int DEFAULT_WIDTH = 4;
 
   int _height, _width;
   List<List<int>> _aBoard = [];
@@ -18,13 +18,12 @@ class Board {
 
   List<int> _solvedBoard = [];
 
-  Board({required int height, required int width})
+  Board({int height = DEFAULT_HEIGHT, int width = DEFAULT_WIDTH})
       :
         _height = height,
         _width = width,
         _types = [],
-        _pieces = [] {
-  }
+        _pieces = [];
 
   void initBoard() {
     for (int row = 0; row < _height; ++row) {
@@ -35,10 +34,10 @@ class Board {
     
     // For now, we just hardcode the types and starting board setup:
 
-    _types.add(PieceType(1, 2, this));
-    _types.add(PieceType(2, 1, this));
-    _types.add(PieceType(1, 1, this));
-    _types.add(PieceType(2, 2, this));
+    PieceType(1, 2, this);
+    PieceType(2, 1, this);
+    PieceType(1, 1, this);
+    PieceType(2, 2, this);
 
     Piece(_types[0], this, 1, 0); // 2x1 piece in top row, second from left
     Piece(_types[1], this, 0, 1); // 1x2 piece in second row, leftmost column
