@@ -61,6 +61,7 @@ class Board {
     _solvedBoard[14] = 1;
     _solvedBoard[15] = 1;
 
+    for (Piece p in _pieces) storeMoves(p);
 
     for (List<int> row in _aBoard)
       print(row);
@@ -382,6 +383,12 @@ class Board {
 
   }
 
+  MoveNode? solve() {
+    return
+      solveIter(_solvedBoard);
+    //solveRec(_solvedBoard);
+  }
+
   MoveNode? solveIter(List<int> solution) {
 
     // Initialize the trie of previously encountered layouts
@@ -435,6 +442,7 @@ class Board {
       if (!tries.getRoot().addBoard(locs, 0, this)) {
         for (MoveNode n in _getNextMoves(next, locs)) {
           pending.add(n);
+          print('Pending moves: ${pending.length}');
         }
       }
     }
@@ -469,6 +477,13 @@ class Board {
     }
     return nextMoves;
   }
+
+  // For debugging purposes
+  void printBoard() {
+    for (List<int> row in _aBoard)
+      print(row);
+  }
+
 }
 
 enum MoveDir {

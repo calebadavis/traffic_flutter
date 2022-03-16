@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_layout_grid/flutter_layout_grid.dart';
 import 'package:traffic_flutter/model/board.dart';
+
+import 'model/move_node.dart';
+import 'model/piece.dart';
+import 'model/piece_type.dart';
 
 void main() {
   runApp(const MyApp());
@@ -51,13 +56,35 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   Board b;
+  List<MoveNode> solution = [];
 
   _MyHomePageState() : b = Board();
+
+  int curMove = 0;
 
   @override
   void initState() {
     super.initState();
     b.initBoard();
+    MoveNode? solvedNode = b.solve();
+
+    if (solvedNode != null) {
+      curMove = 1;
+      for (MoveNode? mn = solvedNode; mn != null; mn = mn.getParent()) {
+
+        // Add each successive move to the solution moves list
+        solution.insert(0, mn);
+      }
+    }
+  }
+
+  void _rearrange(MoveNode mn) {
+    // First reposition the pieces to match the MoveNode
+    b.reset(mn);
+
+    // Calculate possible moves
+    for (Piece p in b.getPieces())
+      b.storeMoves(p);
   }
 
   void _incrementCounter() {
@@ -68,6 +95,24 @@ class _MyHomePageState extends State<MyHomePage> {
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
       _counter++;
+
+      if (curMove < solution.length -1)
+
+        // Place the pieces in the next configuration
+        _rearrange(solution[++curMove]);
+
+      else {
+
+        // otherwise we're at the solution layout, so clear it.
+        solution.clear();
+      }
+
+
+      // List<Piece> pieces = b.getPieces();
+      // Piece p0 = pieces[0];
+      // List<MoveDir> p0moves = pieces[0].getMoves();
+      // b.move(p0, p0moves[0]);
+      // b.printBoard();
     });
   }
 
@@ -85,7 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
+      body: SafeArea(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
         child: Column(
@@ -104,14 +149,17 @@ class _MyHomePageState extends State<MyHomePage> {
           // axis because Columns are vertical (the cross axis would be
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
+            // const Text(
+            //   'You have pushed the button this many times:',
+            // ),
+            // Text(
+            //   '$_counter',
+            //   style: Theme.of(context).textTheme.headline4,
+            // ),
+
+            buildGrid(b),
           ],
         ),
       ),
@@ -120,6 +168,87 @@ class _MyHomePageState extends State<MyHomePage> {
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+
+  Widget buildGrid(Board b) {
+    bool colorFlip = true;
+    List<TrackSize>
+    columnSizes = [],
+        rowSizes = [];
+
+    List<Widget> tiles = [];
+
+    PieceType pt;
+
+    for (int idx = 0; idx < b.getWidth(); ++idx) {
+      columnSizes.add(1.fr);
+    }
+    for (int idx = 0; idx < b.getHeight(); ++idx) {
+      rowSizes.add(1.fr);
+    }
+
+    for (Piece p in b.getPieces()) {
+      pt = p.getType();
+
+      tiles.add(
+          GridPlacement(
+            columnStart: p.getLeftPos(),
+            columnSpan: pt.getWidth(),
+            rowStart: p.getTopPos(),
+            rowSpan: pt.getHeight(),
+            child: SizedBox(
+              width: double.infinity,
+              height: double.infinity,
+              child: generateButton('Type ${pt.getId()}')
+              // FlatButton(
+              //   color: (colorFlip=!colorFlip) ? Colors.red : Colors.blue,
+              //   child: Text('Type ${pt.getId()}'),
+              //   onPressed: () {  }
+              // )
+            )
+          )
+      );
+    }
+
+    return Expanded(
+      child: LayoutGrid(
+          columnSizes: columnSizes,
+          rowSizes: rowSizes,
+          children: tiles
+      ),
+    );
+  }
+
+  Widget generateButton(String text) {
+    return ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Stack(
+          children: <Widget>[
+            Positioned.fill(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: <Color>[
+                      Color(0xFF0D47A1),
+                      Color(0xFF1976D2),
+                      Color(0xFF42A5F5),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.all(16.0),
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 20),
+              ),
+              onPressed: () {},
+              child: Text(text),
+            ),
+          ],
+        )
     );
   }
 }
