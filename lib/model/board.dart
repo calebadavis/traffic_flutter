@@ -39,11 +39,14 @@ class Board {
 
     // For now, we just hardcode the types and starting board setup:
 
+    // There are 4 types of pieces: 2x1, 1x2, 1x1, and 2x2
     PieceType(1, 2, this);
     PieceType(2, 1, this);
     PieceType(1, 1, this);
     PieceType(2, 2, this);
 
+    // There are 10 pieces on the board (one of type '0', four of type '1',
+    // four of type '2', and one type '3'
     Piece(_types[0], this, 1, 0); // 2x1 piece in top row, second from left
     Piece(_types[1], this, 0, 1); // 1x2 piece in second row, leftmost column
     Piece(_types[1], this, 3, 1); // 1x2 piece in second row, rightmost column
@@ -55,8 +58,11 @@ class Board {
     Piece(_types[2], this, 2, 2); // 1x1 piece in third row, third column
     Piece(_types[3], this, 1, 3); // 2x2 piece in fourth row, second column
 
+    // Now that the starting configuration is placed, let's squirrel away a
+    // simplified representation of it
     _startingBoard = pieceLocs();
 
+    // Similarly, let's make a representation of the 'solved' board layout:
     _solvedBoardPIds[9] = 0;
     _solvedBoardPIds[12] = 1;
     _solvedBoardPIds[13] = 2;
@@ -67,7 +73,6 @@ class Board {
     _solvedBoardPIds[8] = 7;
     _solvedBoardPIds[11] = 8;
     _solvedBoardPIds[1] = 9;
-
 
     _solvedBoard[1] = 3;
     _solvedBoard[4] = 2;
@@ -80,9 +85,8 @@ class Board {
     _solvedBoard[14] = 1;
     _solvedBoard[15] = 1;
 
+    // Once the pieces are placed, pre-store each first possible move:
     for (Piece p in _pieces) storeMoves(p);
-    
-
     
     for (List<int> row in _aBoard)
       print(row);
@@ -128,6 +132,7 @@ class Board {
     return true;
   }
 
+  // Attempt to slide a piece into an empty area
   bool move(Piece p, MoveDir dir) {
 
     bool ret = true;
