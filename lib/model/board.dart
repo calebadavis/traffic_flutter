@@ -1,5 +1,7 @@
 library traffic;
 
+import "dart:io";
+
 import 'move_node.dart';
 import 'move_trie.dart';
 import 'piece.dart';
@@ -17,7 +19,8 @@ class Board {
   List<PieceType> _types;
 
   List<int> _solvedBoard = [];
-  late List<int> _startingBoard ;
+  late List<int> _solvedBoardPIds;
+  late List<int> _startingBoard;
 
   Board({int height = DEFAULT_HEIGHT, int width = DEFAULT_WIDTH})
       :
@@ -32,7 +35,8 @@ class Board {
     }
     
     _solvedBoard = List<int>.generate(getHeight() * getWidth(), (int x) => -1, growable: false);
-    
+    _solvedBoardPIds = List<int>.generate(getHeight() * getWidth(), (int x) => -1, growable: false);
+
     // For now, we just hardcode the types and starting board setup:
 
     PieceType(1, 2, this);
@@ -51,6 +55,20 @@ class Board {
     Piece(_types[2], this, 2, 2); // 1x1 piece in third row, third column
     Piece(_types[3], this, 1, 3); // 2x2 piece in fourth row, second column
 
+    _startingBoard = pieceLocs();
+
+    _solvedBoardPIds[9] = 0;
+    _solvedBoardPIds[12] = 1;
+    _solvedBoardPIds[13] = 2;
+    _solvedBoardPIds[14] = 3;
+    _solvedBoardPIds[15] = 4;
+    _solvedBoardPIds[4] = 5;
+    _solvedBoardPIds[7] = 6;
+    _solvedBoardPIds[8] = 7;
+    _solvedBoardPIds[11] = 8;
+    _solvedBoardPIds[1] = 9;
+
+
     _solvedBoard[1] = 3;
     _solvedBoard[4] = 2;
     _solvedBoard[7] = 2;
@@ -64,7 +82,7 @@ class Board {
 
     for (Piece p in _pieces) storeMoves(p);
     
-    _startingBoard = pieceLocs();
+
     
     for (List<int> row in _aBoard)
       print(row);
@@ -255,11 +273,7 @@ class Board {
     return ret;
   }
 
-  void reset(MoveNode mn) {
-
-    // Get the new board layout
-    List<int> aPieces = mn.getPieces();
-
+  void loadFromArray(List<int> aPieces) {
     int pID, row, col;
     Piece p;
 
@@ -289,6 +303,14 @@ class Board {
       // Place the Piece on the board
       markBoard(p, true);
     }
+
+  }
+
+  void reset(MoveNode mn) {
+
+    // Get the new board layout
+    List<int> aPieces = mn.getPieces();
+    loadFromArray(aPieces);
   }
 
   bool matches(List<int>pids, List<int> types) {
@@ -354,6 +376,10 @@ class Board {
     return _solvedBoard;
   }
 
+  List<int> getSolvedBoardPIds() {
+    return _solvedBoardPIds;
+  }
+
   List<int> getStartingBoard() {
     return _startingBoard;
   }
@@ -415,6 +441,7 @@ class Board {
     // For each available move, add that move to the pending list
     for (MoveNode n in _getNextMoves(root, locs)) {
       pending.add(n);
+      stdout.write('. ');
     }
 
     // As we remove pending moves, store each in 'next'
@@ -449,7 +476,6 @@ class Board {
       if (!tries.getRoot().addBoard(locs, 0, this)) {
         for (MoveNode n in _getNextMoves(next, locs)) {
           pending.add(n);
-          print('Pending moves: ${pending.length}');
         }
       }
     }
