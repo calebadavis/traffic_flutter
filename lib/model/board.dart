@@ -149,111 +149,20 @@ class Board {
     // The logic to slide a piece differs based on the direction
     switch (dir) {
 
-    // Attempting to slide the piece to the left:
       case MoveDir.LEFT:
-      // First make sure the piece isn't on the left edge
-        if (pLeft == 0) {
-          ret = false;
-          break;
-        }
-
-        // look at each row occupied by the piece
-        for (int iRow = pTop; iRow < pTop + pHeight; ++iRow) {
-          // Check that the new spot to be occupied is clear
-          if (_aBoard[iRow][pLeft - 1] != -1) {
-            ret = false;
-            break;
-          }
-
-          // Mark the spots to be occupied on the board array
-          for (int iCol = pLeft -1; iCol < pLeft + pWidth - 1; ++iCol) {
-            _aBoard[iRow][iCol] = pType.getId();
-          }
-        }
-
-        // update the state of the piece to its new location
-        p.setLeftPos(pLeft - 1);
+        ret = _tryMoveLeft(p, pType, pTop, pLeft, pHeight, pWidth);
         break;
 
       case MoveDir.RIGHT:
-
-      // First make sure the piece isn't on the right edge
-        if (pLeft + pWidth > _width - 1) {
-          ret = false;
-          break;
-        }
-
-        // look at each row occupied by the piece
-        for (int iRow = pTop; iRow < pTop + pHeight; ++iRow) {
-
-          // Check that the new spot to be occupied is clear
-          if (_aBoard[iRow][pLeft + pWidth] != -1) {
-            ret = false;
-            break;
-          }
-
-          // Mark the spots to be occupied on the board array
-          for (int iCol = pLeft + 1; iCol < pLeft + pWidth + 1; ++iCol) {
-            _aBoard[iRow][iCol] = pType.getId();
-          }
-        }
-
-        // update the state of the piece to its new location
-        p.setLeftPos(pLeft + 1);
+        ret = _tryMoveRight(p, pType, pTop, pLeft, pHeight, pWidth);
         break;
 
       case MoveDir.UP:
-      // First make sure the piece isn't on the top edge
-        if (pTop == 0) {
-          ret = false;
-          break;
-        }
-
-        // look at each column occupied by the piece
-        for (int iCol = pLeft; iCol < pLeft + pWidth; ++iCol) {
-
-          // Check that the new spot to be occupied is clear
-          if (_aBoard[pTop - 1][iCol] != -1) {
-            ret = false;
-            break;
-          }
-
-          // Mark the spots to be occupied on the board array
-          for (int iRow = pTop - 1; iRow < pTop + pHeight - 1; ++iRow) {
-            _aBoard[iRow][iCol] = pType.getId();
-          }
-        }
-
-        // update the state of the piece to its new location
-        p.setTopPos(pTop - 1);
+        ret = _tryMoveUp(p, pType, pTop, pLeft, pHeight, pWidth);
         break;
 
       case MoveDir.DOWN:
-
-      // First make sure the piece isn't on the bottom edge
-        if (pTop + pHeight  + 1 > _height) {
-          ret = false;
-          break;
-        }
-
-        // look at each column occupied by the piece
-        for (int iCol = pLeft; iCol < pLeft + pWidth; ++iCol) {
-
-          // Check that the new spot to be occupied is clear
-          if (_aBoard[pTop + pHeight][iCol] != -1) {
-            ret = false;
-            break;
-          }
-
-          // Mark the spots to be occupied on the board array
-          for (int iRow = pTop + 1; iRow < pTop + pHeight + 1; ++iRow) {
-            _aBoard[iRow][iCol] = pType.getId();
-          }
-        }
-
-        // update the state of the piece to its new location
-        p.setTopPos(pTop + 1);
-
+        ret = _tryMoveDown(p, pType, pTop, pLeft, pHeight, pWidth);
         break;
 
       default:
@@ -272,7 +181,6 @@ class Board {
       for (Piece nextP in _pieces) {
         storeMoves(nextP);
       }
-
     }
 
     return ret;
@@ -320,30 +228,29 @@ class Board {
 
   bool matches(List<int>pids, List<int> types) {
 
-  int pID, tID;
+    int pID, tID;
 
-  // for each item in the board layout array
-  for (int i = 0, size = pids.length; i < size; ++i) {
+    // for each item in the board layout array
+    for (int i = 0, size = pids.length; i < size; ++i) {
 
-    // see if the position in the array contains a piece
-    pID = pids[i];
+      // see if the position in the array contains a piece
+      pID = pids[i];
 
-    // If the position array says there's no piece there, but the types
-    // array shows a piece type, then the two layouts are not a match
-    if (pID == -1)
-    if (types[i] != -1) return false;
-    else continue;
+      // If the position array says there's no piece there, but the types
+      // array shows a piece type, then the two layouts are not a match
+      if (pID == -1)
+        if (types[i] != -1) return false;
+        else continue;
 
-    // Reaching here means the position array shows a piece there
-    // Get the piece by its id, get its type, and check that the typeID
-    // matches the one specified in the type array at the same position
-    tID = _pieces[pID].getType().getId();
-    if ( tID != types[i])
-    return false;
-  }
+      // Reaching here means the position array shows a piece there
+      // Get the piece by its id, get its type, and check that the typeID
+      // matches the one specified in the type array at the same position
+      tID = _pieces[pID].getType().getId();
+      if ( tID != types[i] ) return false;
+    }
 
-  // We've walked all the positions, and each was a match. Done!
-  return true;
+    // We've walked all the positions, and each was a match. Done!
+    return true;
   }
 
   List<int> pieceLocs() {
@@ -520,6 +427,130 @@ class Board {
   void printBoard() {
     for (List<int> row in _aBoard)
       print(row);
+  }
+
+  bool _tryMoveRight(
+      Piece p,
+      PieceType pType,
+      int pTop,
+      int pLeft,
+      int pHeight,
+      int pWidth
+  ) {
+
+    // First make sure the piece isn't on the right edge
+    if (pLeft + pWidth > _width - 1) {
+      return false;
+    }
+
+    // look at each row occupied by the piece
+    for (int iRow = pTop; iRow < pTop + pHeight; ++iRow) {
+
+      // Check that the new spot to be occupied is clear
+      if (_aBoard[iRow][pLeft + pWidth] != -1) {
+        return false;
+      }
+
+      // Mark the spots to be occupied on the board array
+      for (int iCol = pLeft + 1; iCol < pLeft + pWidth + 1; ++iCol) {
+        _aBoard[iRow][iCol] = pType.getId();
+      }
+    }
+
+    // update the state of the piece to its new location
+    p.setLeftPos(pLeft + 1);
+    return true;
+  }
+
+  bool _tryMoveLeft(
+      Piece p,
+      PieceType pType,
+      int pTop,
+      int pLeft,
+      int pHeight,
+      int pWidth
+  ) {
+    // First make sure the piece isn't on the left edge
+    if (pLeft == 0) {
+      return false;
+    }
+
+    // look at each row occupied by the piece
+    for (int iRow = pTop; iRow < pTop + pHeight; ++iRow) {
+      // Check that the new spot to be occupied is clear
+      if (_aBoard[iRow][pLeft - 1] != -1) {
+        return false;
+      }
+
+      // Mark the spots to be occupied on the board array
+      for (int iCol = pLeft - 1; iCol < pLeft + pWidth - 1; ++iCol) {
+        _aBoard[iRow][iCol] = pType.getId();
+      }
+    }
+
+    // update the state of the piece to its new location
+    p.setLeftPos(pLeft - 1);
+    return true;
+  }
+
+  bool _tryMoveUp(Piece p,
+      PieceType pType,
+      int pTop,
+      int pLeft,
+      int pHeight,
+      int pWidth) {
+    // First make sure the piece isn't on the top edge
+    if (pTop == 0) {
+      return false;
+    }
+
+    // look at each column occupied by the piece
+    for (int iCol = pLeft; iCol < pLeft + pWidth; ++iCol) {
+      // Check that the new spot to be occupied is clear
+      if (_aBoard[pTop - 1][iCol] != -1) {
+        return false;
+      }
+
+      // Mark the spots to be occupied on the board array
+      for (int iRow = pTop - 1; iRow < pTop + pHeight - 1; ++iRow) {
+        _aBoard[iRow][iCol] = pType.getId();
+      }
+    }
+
+    // update the state of the piece to its new location
+    p.setTopPos(pTop - 1);
+    return true;
+  }
+
+  bool _tryMoveDown(
+      Piece p,
+      PieceType pType,
+      int pTop,
+      int pLeft,
+      int pHeight,
+      int pWidth
+      ) {
+    // First make sure the piece isn't on the bottom edge
+    if (pTop + pHeight + 1 > _height) {
+      return false;
+    }
+
+    // look at each column occupied by the piece
+    for (int iCol = pLeft; iCol < pLeft + pWidth; ++iCol) {
+      // Check that the new spot to be occupied is clear
+      if (_aBoard[pTop + pHeight][iCol] != -1) {
+        return false;
+      }
+
+      // Mark the spots to be occupied on the board array
+      for (int iRow = pTop + 1; iRow < pTop + pHeight + 1; ++iRow) {
+        _aBoard[iRow][iCol] = pType.getId();
+      }
+    }
+
+    // update the state of the piece to its new location
+    p.setTopPos(pTop + 1);
+    return true;
   }
 
 }

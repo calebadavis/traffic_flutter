@@ -130,6 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
       await Future.delayed(const Duration(milliseconds: 100), nextSolvedMove);
       print('Delaying 1/10 second before next move...: ${curMove}');
     }
+
   }
 
   void showSolved({bool revert = false}) {
